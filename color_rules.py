@@ -1,0 +1,6 @@
+USB_ID = r'\bid(.*)|\bSerialNumber=(.*)[^\s]'
+IP = r'(\bIP-DELETED)|(([2][5][0-5]\.)|([2][0-4][0-9]\.)|([0-1]?[0-9]?[0-9]\.)){3}(([2][5][0-5])|([2][0-4][0-9])|([0-1]?[0-9]?[0-9]))'
+DAEMON = r'(\s)((.*)(\bdaemon))'
+PATH = r'(/(\S+[^,\)]))'
+STARTING = r'\bstarting|\bJoining'
+EXITING = r'\bexiting|Leaving|disconnect'
