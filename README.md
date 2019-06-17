@@ -1,6 +1,6 @@
 # linlog
 Compiled with python 3.6.3. \
-A linux log analyzer that can (hopefully) help within the field of file forensics. It is designed to exract authentication events from 
+A linux log analyzer that can (hopefully) help within the field of file forensics. It is designed to extract authentication events from 
 var/log/auth.log and general events from var/log/syslog. The user can specify its own rules, a time interval, a certain user and a certain
 logfile. 
 
