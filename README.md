@@ -1,7 +1,7 @@
 # linlog
 Compiled with python 3.6.3. \
 A linux log analyzer that can (hopefully) help within the field of file forensics. It is designed to extract authentication events from 
-var/log/auth.log and general events from var/log/syslog. The user can specify its own rules, a time interval, a certain user and a certain
+var/log/auth.log and general events from var/log/syslog. It also catches certain events from other logfiles, like firewall from /var/log/messages. The user can specify its own rules, a time interval, a certain user and a certain
 logfile. 
 
 #### Installation
@@ -67,5 +67,5 @@ Jun 17 18:45:10 BLOCK 216.58.207.206:443 ---> 10.52.109.13:46450
 * Optimize or restructure code.
 * Make it possible to specify combinations of options.
 * Check out more VPN clients (unfortunatley the messages differ).
-* Abstract away more unuseful information and add more information that can be relevant.
+* Abstract away more unuseful information and add more information that can be relevant. E.g. installed packages and reboots.
 * Work more on visual presentation. An idea is to let the user interact and expand elements.
