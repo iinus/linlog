@@ -63,9 +63,9 @@ Jun 17 18:45:10 BLOCK 216.58.207.206:443 ---> 10.52.109.13:46450
 
 </pre>
 
-#### Furture work
+#### Further work
 * Optimize or restructure code.
 * Make it possible to specify combinations of options.
-* Check out more VPN clients (unfortunatley the messages differ).
+* Check out more VPN clients (unfortunatley the messages differs from VPN to VPN).
 * Abstract away more unuseful information and add more information that can be relevant. E.g. installed packages and reboots.
 * Work more on visual presentation. An idea is to let the user interact and expand elements.
