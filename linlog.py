@@ -33,7 +33,7 @@ if __name__=="__main__":
     if options.log: 
         logfile = sys.argv[-1]
         if "auth" in logfile:
-            auth_analyzer.main(logfile, None)
+            auth_analyzer.main(logfile, None, time_int)
         else:
             sys_analyzer.main(logfile, time_int)
 

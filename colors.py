@@ -1,6 +1,6 @@
 HEADER = '\033[95m\033[1m'
 USER = '\33[96m\033[1m'
-TIME = '\033[94m'
+TIME = '\033[94m\033[1m'
 IP = '\033[92m'
 OKGREEN = '\033[92m'
 WARNING = '\33[31m'

@@ -22,8 +22,10 @@ def main(logfile, time):
     daemonStart = {}
     cronjobs = {}
     avahi_dns = {}
+    firewall = {}
     user_specified = {}
     user_rule_names = []
+    pid = ''
 
     try:
         log = gzip.open(logfile, 'r') if '.gz' in logfile else open(logfile, 'r', encoding='utf-8')
@@ -43,12 +45,13 @@ def main(logfile, time):
             date = colors.TIME + date + colors.CEND
             if rules.PID(line):
                 pid = "[pid:" + rules.PID(line).group(2).strip(" ") +  "] "
-            if rules.LINUX_VERSION(line):
-                linuxVersion = rules.LINUX_VERSION(line).group(0)
-            elif rules.SYSTEM_CLOCK(line): 
-                systemClock = rules.SYSTEM_CLOCK(line).group(3).strip("\n")
-            elif rules.HOST_NAME(line):
-                hostname = rules.HOST_NAME(line).group(2).strip("\n")
+            if rules.NETWORK_MANAGER_ELEMENT(line) and rules.NETWORK_MANAGER_FILTER(line):
+                element = rules.NETWORK_MANAGER_ELEMENT(line).group(3).strip("\n")
+                msg = rules.NETWORK_MANAGER_ELEMENT(line).group(4).strip("\n")
+                msg = colorize(color_rules.PATH, colors.PATH, msg)
+                if element not in networkManagers:
+                    networkManagers[element] = NetworkManagers(element)
+                networkManagers[element].messages[msg] = date
             elif rules.USB(line):
                 msg = colorize(color_rules.USB_ID, colors.ID, rules.USB(line).group(0).strip("\n"))
                 msg = colorize(color_rules.EXITING, colors.OKRED, msg)
@@ -56,24 +59,17 @@ def main(logfile, time):
             elif rules.DHCP_REQUEST(line):
                 ip_port = colorize(color_rules.IP, colors.IP, rules.DHCP_IP(line).group(2))
                 if rules.PORT(line):
-                    ip_port += " " + colors.PORT + rules.PORT(line).group(0) + colors.CEND
-                dhcpReq[date] = ip_port
+                    ip_port +=  colors.PORT + ":" + rules.PORT(line).group(2) + colors.CEND
+                dhcpReq[ip_port] = date
             elif rules.DHCP_DHCPACK(line):
                 ip_port = colorize(color_rules.IP, colors.IP, rules.DHCP_IP(line).group(2))
                 if rules.PORT(line):
                     ip_port += " " + colors.PORT + rules.PORT(line).group(0) + colors.CEND
-                dhcpPack[date] = ip_port
+                dhcpPack[ip_port] = date
             elif rules.INPUT(line):
                 input_ = rules.INPUT(line).group(3).strip("\n")
                 input_ = colorize(color_rules.PATH, colors.PATH, input_)
                 inputs[input_] = date 
-            elif rules.NETWORK_MANAGER_ELEMENT(line) and rules.NETWORK_MANAGER_FILTER(line):
-                element = rules.NETWORK_MANAGER_ELEMENT(line).group(3).strip("\n")
-                msg = rules.NETWORK_MANAGER_ELEMENT(line).group(4).strip("\n")
-                msg = colorize(color_rules.PATH, colors.PATH, msg)
-                if element not in networkManagers:
-                    networkManagers[element] = NetworkManagers(element)
-                networkManagers[element].messages[msg] = date
             elif rules.OPENVPN(line):
                 msg = rules.OPENVPN(line).group(0).strip("\n")
                 openVPN[pid + msg] = date
@@ -92,7 +88,20 @@ def main(logfile, time):
                 msg = colorize(color_rules.IP, colors.IP, msg)
                 msg = colorize(color_rules.STARTING, colors.OKGREEN, msg)
                 msg = colorize(color_rules.EXITING, colors.OKRED, msg)
-                avahi_dns[pid + msg] = date       
+                avahi_dns[pid + msg] = date
+            elif rules.FIREWALL(line):
+                SRC_IP_PORT = rules.FIREWALL(line).group(4) + ":" + rules.FIREWALL(line).group(10)
+                DST_IP_PORT = rules.FIREWALL(line).group(7) + ":" + rules.FIREWALL(line).group(13)
+                msg = "BLOCK " + SRC_IP_PORT + " ---> " + DST_IP_PORT
+                msg = colorize(color_rules.IP, colors.IP, msg)
+                msg = colorize(color_rules.PORT, colors.ID, msg)
+                firewall[msg] = date
+            elif rules.LINUX_VERSION(line):
+                linuxVersion = rules.LINUX_VERSION(line).group(0)
+            elif rules.SYSTEM_CLOCK(line): 
+                systemClock = rules.SYSTEM_CLOCK(line).group(3).strip("\n")
+            elif rules.HOST_NAME(line):
+                hostname = rules.HOST_NAME(line).group(2).strip("\n")
             for rule in user_rule_names:
                 if rule not in user_specified and rule is not None:
                     user_specified[rule] = NetworkManagers(rule)
@@ -113,13 +122,13 @@ def main(logfile, time):
         for usb in sorted(USBs, key=USBs.get, reverse=True):
             print(USBs[usb] + " " + transform(r'\[(.*)\]\s', "", usb))
     if (len(dhcpReq) > 0):
-        print("\n" + colors.USER + "[*] DHCP requests " + colors.CEND)
-        for ip in sorted(dhcpReq,  reverse=True):
-            print (ip + " to "+  dhcpReq[ip] )
+        print("\n" + colors.USER + "[*] DHCP requests (unique) " + colors.CEND)
+        for ip in sorted(dhcpReq, key=dhcpReq.get,  reverse=True):
+            print (dhcpReq[ip] + " to " + ip  )
     if (len(dhcpPack) > 0):
-        print("\n" + colors.USER + "[*] DHCP packs " + colors.CEND)
-        for ip in sorted(dhcpPack, reverse=True):
-           print (ip + " from "+  dhcpPack[ip]  ) 
+        print("\n" + colors.USER + "[*] DHCP packs (unique) " + colors.CEND)
+        for ip in sorted(dhcpPack, key=dhcpPack.get, reverse=True):
+           print (dhcpPack[ip] + " from "+  ip ) 
     if (len(inputs) > 0):
         print("\n" + colors.USER + "[*] Input " + colors.CEND)
         for input_ in sorted(inputs, key=inputs.get, reverse=True):
@@ -140,6 +149,10 @@ def main(logfile, time):
         print("\n" + colors.USER + "[*] mDNS/DNS-SD (Avahi daemon) " + colors.CEND)
         for msg in sorted(avahi_dns, key=avahi_dns.get, reverse=True):
             print(avahi_dns[msg]+ " " + msg)
+    if (len(firewall) > 0):
+        print("\n" + colors.USER + "[*] Firewall " + colors.CEND)
+        for msg in sorted(firewall, key=firewall.get, reverse=True):
+            print(firewall[msg]+ " " + msg)
     if len(networkManagers) > 0:
         print("\n" + colors.USER + "[*] Network Manager " + colors.CEND)
         for nm in networkManagers:

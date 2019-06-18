@@ -18,7 +18,7 @@ def main(logfile, useroption, time_int):
         print("Wrong file or file path")
         sys.exit(1)
     username = None
-
+    ip = None
 
     for line in log:
         # extract date, ip, port and user  
@@ -30,15 +30,18 @@ def main(logfile, useroption, time_int):
                 username = rules.USER(line).group(2)
                 if username not in users:
                     addUser(username, date, useroption)
-            
-            if username in logs and rules.USER(line): # don't add all users if option is set 
+            elif (rules.USER_ROOT(line)):
+                username = rules.USER_ROOT(line).group(2)
+                if username not in users:
+                    addUser(username, date, useroption)
+            if username in logs and (rules.USER_ROOT(line) or rules.USER(line)): # don't add all users if option is set 
                 logs[username].counter +=1
                 if rules.INVALID_USER(line):
                     logs[username].invalid = True
                 if(rules.IP(line)):
                     ip = colors.IP + rules.IP(line).group(0).rstrip() + colors.CEND
                 if (rules.PORT(line)):
-                    port = colors.PORT + " " + rules.PORT(line).group(0).rstrip() + colors.CEND
+                    port = colors.PORT + ":" + rules.PORT(line).group(2) + colors.CEND
                     ip = ip + port
 
                 # su
@@ -50,7 +53,7 @@ def main(logfile, useroption, time_int):
                     logs[username].su[su] = date
 
                 # sudo 
-                if rules.SUDO(line):
+                elif rules.SUDO(line):
                     cmd =" "
                     if (rules.SUDOERS(line)):
                         cmd += rules.SUDOERS(line).group(0) + " "
@@ -58,20 +61,26 @@ def main(logfile, useroption, time_int):
                     logs[username].sudo[cmd] = date
 
                 # ssh
-                if rules.AUTHENTICATION_FAILURE(line):
-                    logs[username].failed_ssh[ip] = date
+                elif rules.SSH_FAILURE(line):
+                    logs[username].failed_ssh[date] = ip
 
                 # sessions
-                if rules.SESSIONS(line):
+                elif rules.SESSIONS(line):
                     session = rules.SESSIONS(line).group(0)
                     logs[username].sessions[session] = date
                 
                 # Failed and accepted passwords
-                if rules.PASSWORD_ATTEMPTS(line):
+                elif rules.PASSWORD_ATTEMPTS(line):
                     if ("Failed password") in line: 
                         logs[username].failed[ip] = date                
-                    if ("Accepted password") in line: 
-                        logs[username].success[ip] = date
+                    else: 
+                        logs[username].success[ip] = date 
+
+                # Other auth failures
+                elif rules.AUTH_FAILURE(line) and ip is None:
+                    auth_type = " " + rules.AUTH_FAILURE(line).group(2).strip("(")
+                    logs[username].auth_fail[date] = auth_type + " authentication failure"
+                
 
     log.close()
 
@@ -98,7 +107,7 @@ def main(logfile, useroption, time_int):
             if (len(logs[str(user)].failed_ssh) > 0):
                 print(colors.BOLD + "[+] SSH:  " + colors.CEND)
                 for ssh in sorted(logs[str(user)].failed_ssh, key=logs[str(user)].failed_ssh.get, reverse=True):
-                    print( str(logs[str(user)].failed_ssh[ssh].strip("\n")) + " SSH authentication failure from " +  ssh )  
+                    print( ssh + " SSH authentication failure from " +  str(logs[str(user)].failed_ssh[ssh].strip("\n")) )  
             if (len(logs[str(user)].sessions) > 0):
                 print( colors.BOLD + "[+] Sessions: " + colors.CEND)
                 for session in sorted(logs[str(user)].sessions, key=logs[str(user)].sessions.get, reverse=True):
@@ -107,6 +116,10 @@ def main(logfile, useroption, time_int):
                 print( colors.BOLD + "[+] Sudo: " + colors.CEND)
                 for cmd in sorted(logs[str(user)].sudo, key=logs[str(user)].sudo.get, reverse=True):
                     print(logs[str(user)].sudo[cmd] + cmd.strip("\n"))
+            if (len(logs[str(user)].auth_fail) > 0):
+                print( colors.BOLD + "[+] Authentication failures " + colors.CEND)
+                for msg in sorted(logs[str(user)].auth_fail,  reverse=True):
+                    print( msg + logs[str(user)].auth_fail[msg])
             print("\n")
     
 def addUser(username, date, useroption):
@@ -136,6 +149,7 @@ class Log:
         self.invalid = False
         self.sessions = {}
         self.sudo = {}
+        self.auth_fail = {}
 
 if __name__ == "__main__": 
     main()

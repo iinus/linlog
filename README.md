@@ -37,9 +37,9 @@ python3 linlog.py -u user
 * INVALID USER *
 Counted 3 times in /var/log/auth.log
 [+] SSH:  
-May 25 04:22:19 SSH authentication failure from 105.235.116.254 port 48680
-May 25 03:32:59 SSH authentication failure from 46.101.235.214 port 39336
-May 25 02:16:09 SSH authentication failure from 128.199.221.18 port 38716
+May 25 04:22:19 SSH authentication failure from 105.235.116.254:48680
+May 25 03:32:59 SSH authentication failure from 46.101.235.214:39336
+May 25 02:16:09 SSH authentication failure from 128.199.221.18:38716
 
 python3 linlog.py -t "May 25 13:52:33"
 outputs all extracted events after the date specified
@@ -49,4 +49,23 @@ Add your rule to the list of rules. You will se it summarized at the bottom next
 
 python3 linlog.py --clear
 Clear all rules you specified
+
+python3 linlog.py -l messages
+Prints summary of specified logfile. Output is similar to:
+[*] System clock 
+2019-06-17 14:26:27 UTC (1560781587)
+
+[*] Firewall 
+Jun 17 18:47:45 BLOCK 198.252.206.25:443 ---> 10.52.109.13:41642
+Jun 17 18:45:28 BLOCK 216.58.207.206:443 ---> 10.52.109.13:46452
+Jun 17 18:45:10 BLOCK 216.58.207.206:443 ---> 10.52.109.13:46450
+....
+
 </pre>
+
+#### Furture work
+* Optimize or restructure code.
+* Make it possible to specify combinations of options.
+* Check out more VPN clients (unfortunatley the messages differ).
+* Abstract away more unuseful information and add more information that can be relevant.
+* Work more on visual presentation. An idea is to let the user interact and expand elements.
