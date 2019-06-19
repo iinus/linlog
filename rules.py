@@ -33,8 +33,3 @@ CRON_JOBS = lambda line : re.search(r'\b(Running @reboot jobs)', line)
 HOST_NAME = lambda line : re.search(r'(\bHost name is\s)([^\s]*)', line)
 AVAHI_DNS = lambda line : re.search(r'(\bavahi-daemon)(\[(.*)\]:\s)((.*)(\bJoining|\bLeaving)(.*)(\bmDNS|\bDNS-SD)(.*)(v4)([^#]*))', line)
 FIREWALL = lambda line : re.search(r'([UFW BLOCK])(.*)(\bSRC=)(\S+)(.*)(\bDST=)(\S+)(.*)(\bSPT=)(\S+)(.*)(\bDPT=)(\S+)', line)
-
-# Jun 17 16:51:26 debian NetworkManager[364]: <info>  [1560783086.0629] devices removed (path: /sys/devices/virtual/net/cscotun0, iface: cscotun0)
-# Jun 17 16:48:09 debian systemd-timesyncd[246]: Synchronized to time server 81.166.75.50:123 (0.debian.pool.ntp.org).
-# Jun 17 18:44:52 debian kernel: [ 8303.496124] [UFW BLOCK] IN=cscotun0 OUT= MAC= SRC=216.58.207.206 DST=10.52.109.13 LEN=115 TOS=0x00 PREC=0x00 TTL=117 ID=57177 PROTO=TCP SPT=443 DPT=46452 WINDOW=248 RES=0x00 ACK PSH URGP=0 
-# Jun 11 18:41:59 debian gdm-password]: pam_unix(gdm-password:auth): authentication failure; logname=iinusen uid=0 euid=0 tty=/dev/tty2 ruser= rhost=  user=iinusen

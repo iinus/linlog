@@ -10,7 +10,7 @@ import sys_analyzer
 if __name__=="__main__":
 
     if sys.version_info < (3, 0, 0):
-        sys.stderr.write("linlog requires python version 3.6, please upgrade your python installation.")
+        sys.stderr.write("linlog requires python version > 3.0, please upgrade your python installation.")
         sys.exit(1)
 
     authlog = '/var/log/auth.log'
